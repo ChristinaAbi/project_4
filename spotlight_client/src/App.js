@@ -1,22 +1,53 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Artists from './components/Artists'
 
 export default function App(props) {
   const [artists, setArtists] = useState([])
   const [formInputs, updateFormInputs] = useState({
-    author: "",
-    content: "",
-    title: ""
+    name: "",
+    biography: "",
+    age: "",
+    location: ""
   })
+  const getArtists = async () => {
+    try {
+        const response = await fetch('http://localhost:3000/artists');
+        const data = await response.json();
+        console.log(data)
+        setArtists(data);
+    } catch (error) {
+        console.error(error)
+    }
+}
+useEffect(() => {
+    (
+        async function (){
+            await getArtists()
+        }
+    )()
+}, []);
 
   const handleChange = (event) => {
     const updateInput = Object.assign({}, formInputs, { [event.target.id]: event.target.value })
     updateFormInputs(updateInput)
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit  = async (event) =>{
     event.preventDefault()
-    console.log(formInputs)
+    try{
+      const response = await axios.post('http://localhost:3000/artists', formInputs);
+      const data = response.data;
+      updateFormInputs({
+            name: "",
+            biography: "",
+            age: "",
+            location: ""
+      })
+      setArtists([data, ...artists])
+    }catch(error){
+      console.error(error)
+    }
   }
   return (
     <div className="App">
@@ -37,13 +68,13 @@ export default function App(props) {
               id="biography" 
               value={formInputs.biography}
               onChange={handleChange}/>
-            <label htmlFor="age">Age :</label>
+            <label htmlFor="age">Age: </label>
             <input 
               type="text" 
               id="age" 
               value={formInputs.age}
               onChange={handleChange}/>
-            <label htmlFor="location">Location</label>
+            <label htmlFor="location">Location: </label>
             <input 
               type="text" 
               id="location" 
@@ -51,7 +82,11 @@ export default function App(props) {
               onChange={handleChange}/>
             <input type="submit" className="submit" />
         </form> 
+        <br />
         <main>
+          <h3>
+          Looking to Join Our Spotlight Artists? Fill the form below to be featured!
+          </h3>
           <Artists artists={artists} />
         </main>
       </div>
